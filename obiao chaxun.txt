@@ -1,0 +1,161 @@
+select sno,sname,ssex,mname
+from student s
+left join major m on s.mNO = m.mNO
+
+select sc.sno as '学号',sname as '姓名',COUNT(*) as '没有及格的门数'
+from student_course sc,student s
+where Mark < 60 and s.sNO = sc.sNO
+group by sc.sno,sName
+/*将学号分为一组，学号内部，如果成绩小于60，则统计*/
+
+select LEFT(s.sno,7),COUNT(*) as '人数'
+from student s,major m
+where m.mName = '计算机科学与技术' and s.mNO = m.mNO
+group by LEFT(s.sNO,7)
+/*将是计算机科学与技术的班级号进行分组，数其中的人数（where语句中体现）*/
+
+select s.sno,sname,mark
+from student s, student_course sc
+where s.sNO = sc.sNO and ccNO = '0324091007' and Mark >=(
+select avg(mark)
+from student_course
+where sc.ccNO='0324091007')
+/*这里必须将平均分用一个子查询，平均分要算课程号为指定的课，若不用子查询，直接用Mark >= avg(mark),此时avg求的并不是指定课平均分*/
+
+select COUNT (distinct cno)
+from course_class cc,student_course sc
+where cc.ccNO = sc.ccno
+
+select sno,sname
+from student s
+where not exists
+(
+select *
+from course_class cc
+where not exists (
+select *
+from student_course SC
+where s.sNO = sc.sno and sc.ccno = cc.ccNO
+)
+)
+
+
+select sname, sbirth
+from student
+where sSex= (
+select sSex
+from student 
+where sName='刘卫平')
+/*找到跟刘卫平一样性别的人的姓名和出生日期*/
+
+select sno,sname,ssex
+from student 
+where student.sNO in (
+	select sNO 
+	from student_course
+	where ccNO in ('0324091007','0324051013')
+)
+/*查询选修了课程号为‘’或‘’的学生的学号姓名性别*/
+
+select sno,sname
+from student s
+where exists(
+select *
+from student_course sc
+where sc.sNO = s.sNO and ccNO='0324091007'
+)
+and exists (
+	select *
+	from student_course sc
+	where sc.sNO = s.sNO and ccNO='0312091006'
+)
+/*查询选修了课程号为‘’和‘’的学生的学号和姓名*/
+/*区别？一个是或一个是和*/
+
+SELECT ccNo,mark
+FROM student_course
+WHERE sNo ='100212201' AND mark >ANY
+(SELECT mark
+FROM student_course
+WHERE sNo ='100212208' )
+/*查询学号为01的学生成绩高于学号为08的学生最高分的课程的课程号和成绩*/
+
+SELECT sNo,sName,mName
+FROM student AS s, major AS m
+WHERE s.mNo=m.mNo AND s.sNo IN
+(SELECT sNo
+FROM student_course
+WHERE mark<60)
+/*查询成绩低于60分的学生学号姓名和专业名*/
+
+SELECT sName
+FROM student s
+WHERE NOT EXISTS(
+SELECT *
+FROM student_course sc,course_class cc,teacher t
+WHERE sc.ccNo=cc.ccNo AND cc.tno=t.tno AND
+sc.sNo=s.sNo AND t.tName='李明')
+/*查询没有被李明老师教的学生的姓名*/
+
+SELECT distinct s.sNo,sName,mName
+FROM student s,major m,student_course sc
+WHERE s.mNo=m.mNo AND s.sNo=sc.sNo AND mark<60
+/*查询有不及格课程的学生学号、姓名和专业名称*/
+
+
+SELECT sc1.sNo ,sc1.mark,sc2.mark
+FROM student_course sc1,student_course sc2
+WHERE sc1.ccNo='2009010101'
+AND sc2.ccNo='2009010201'
+AND sc1.mark>sc2.mark
+AND sc1.sNO = sc2.sno
+/*查询同一个学生的“010101”号课程的成绩比“010102”号课程的成绩高的所有学生的学号及其两门课的成绩。*/
+
+
+SELECT s.sNo,s.sName
+FROM student s
+WHERE sNo IN (
+SELECT sc.sNo
+FROM student_course sc,course_class cc,course c
+WHERE sc.ccNo=cc.ccNo AND cc.cno=c.cno
+AND c.cname IN('计算机网络','金融学')
+GROUP BY sNo
+HAVING count(*)=2)
+/*查询既选修过“计算机网络”课程，又选修过“金融学”课程的所有学生学号及姓名。*/
+
+SELECT s.sName, AVG(sc1.mark)
+FROM student s,student_course sc1
+WHERE s.sNo=sc1.sNo AND s.sNo IN(
+SELECT sNo
+FROM student_course sc2
+WHERE sc1.Mark<60
+GROUP BY sNo
+HAVING COUNT(*)>=2)
+GROUP BY s.sName
+/*查询有二门以上（含两门）课程不及格的学生姓名及其平均成绩。*/
+
+SELECT sNo,sName
+FROM student s
+WHERE sNo IN(
+SELECT sNo
+FROM student_course sc
+RIGHT JOIN course_class cc ON sc.ccNo=cc.ccNo
+GROUP BY sNo
+HAVING COUNT(*)=(
+select COUNT(*)
+from course
+group by cno
+/*?????*/
+
+
+))
+
+
+SELECT cName,tName
+FROM course c,teacher t,course_class cc
+WHERE c.cNo=cc.cNo AND cc.tNo=t.tNo AND ccNo=(
+SELECT top 1 ccNo
+FROM student_course
+GROUP BY ccNo
+ORDER BY AVG(mark) DESC )
+/*查询学生平均分最高的课程名称及任课教师。*/

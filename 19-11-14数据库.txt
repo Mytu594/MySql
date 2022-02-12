@@ -1,0 +1,106 @@
+insert into department(dNO)
+values('d01006')
+ 
+insert into major(mNo,mName,mSubject,dNO)
+values('d606','计算机科学与技术','计算','d01006')
+
+insert into teacher(tNO,tName,tSex,tRank)
+VALUES('594','李立','男','专任教师')
+
+
+/*写出下面SQL语句实现的功能*/
+--1
+SELECT COUNT(*) AS '该专业女生人数'
+FROM student
+WHERE mno='100165' AND ssex='女'
+/*查询专业号为"100165"的女生人数*/
+
+--2
+SELECT  DISTINCT  SUBSTRING(sname,1,1) 
+FROM student
+/*查询全体学生的姓氏*/
+
+--3
+SELECT sno,sname,ssex,mno
+FROM student
+WHERE mno IN ('100165','201148','100838')
+/*查询专业号为"100165"、"201148"或"100838"的学生学号、姓名、性别和专业号*/
+
+--4
+CREATE VIEW v_1
+AS
+    SELECT ccno,mark
+    FROM student_course
+    WHERE sno ='100212201' AND mark >ANY 
+		(SELECT mark FROM student_course
+		WHERE sno ='100212208' )
+
+select *
+ from v_1
+ 
+ /*创建一课程成绩视图v_1(包括开课号及成绩)*/
+ 
+ --5
+SELECT DISTINCT s.sno,sname,dname 
+FROM student AS s,department AS d, student_course as sc ,major as m
+WHERE s.mno=m.mno and d.dno=m.dno AND s.sno=sc.sno AND mark <60
+/*查询成绩不及格学生的学号、姓名和系名*/
+
+--6
+SELECT sno,sname,mname 
+FROM student AS s,major AS m
+WHERE s.mno=m.mno AND s.sno IN
+(SELECT DISTINCT sno 
+FROM student_course
+WHERE mark <60 )
+/*查询成绩不及格学生的学号、姓名和专业名*/
+
+--1
+select distinct s.sno,sname,cc.ccno,mark
+from student s,course_class cc,student_course sc
+where s.sNO=sc.sNO and sc.ccNO=cc.ccNO and sSex='女'
+
+--2
+select top 1 s.sno,SUM(mark),mark
+from student s,student_course sc
+where s.sNO=sc.sNO
+Order by Mark desc
+
+--3
+select *
+from student s
+where sName like 
+--3
+select *
+from student s
+where sName like '张%' or sName like '%秋%'
+ 
+--4
+select cName as '课程名',AVG(mark)'平均分',MIN(mark)'最低分',MAX(mark)'最高分'
+from student_course sc,course c,course_class cc
+where sc.ccNO=cc.ccNO and c.cNO=cc.cNO
+group by cName
+
+--5????
+select sc.sNO
+from student s,student_course sc
+where s.sNO=sc.sNO
+group by ccNO
+having(COUNT(*)>=2 and AVG(mark)>80)
+
+--6
+select s.sno,sname,mark
+from student s,student_course sc
+where s.sNO=sc.sNO and Mark>=90 and sc.sno in(
+select sNO
+from student_course sc,course_class cc
+where sc.ccNO=cc.ccno and cNO='010104')
+
+--7
+select sc.sno mark 
+from student_course sc,course_class cc, course c
+where  sc.ccNO=cc.ccNO and cc.cNO=c.cNO and cName='高等数学' and Mark>(
+select Mark
+from student s,student_course sc,course c,course_class cc
+where s.sNO=sc.sNO and sc.ccNO=cc.ccNO and cc.cNO=c.cNO and sName='李晨')
+ 

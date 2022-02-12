@@ -1,0 +1,152 @@
+select sNO
+from student_course
+where mark<60
+group by sNO
+
+
+select *
+from student
+where sNative='海南'
+
+select AVG(mark) as '平均分',MAX(mark) as '最高分',MIN(mark) as '最低分'
+from student_course
+group by ccNo
+order by '平均分' desc
+
+select sNo,COUNT(*)
+from student_course
+where AVG(mark)>80
+group by ccNO
+Having(COUNT(*)>=2)
+
+
+--多表
+select COUNT(*) As '选修人数',AVG(mark) as '平均数'
+from student_course
+where sNO like '0916502%'
+group by ccNO
+having COUNT(*)>5
+
+select sNo,sName,sSex,sBirth
+from student
+where sBirth>'1993/12/31'
+
+select sNo,sName,sSEX,sBirth
+from student
+where sName like '陈__'
+
+select sNo,AVG(mark) as '平均分',MAX(mark) as '最高分' ,MIN(mark) as '最低分'
+from student_course
+group by sNO,MARK
+ORDER BY MARK DESC
+
+SELECT Top 10 percent sNo,mark
+from student_course
+where ccNo='0901120001'
+order by Mark desc
+
+select sNo,sName,sSex,sName
+from student s
+left join major M ON s.mNO=M.mNO
+
+select sc.sNo as '学号',sName as '姓名',COUNT(*) as '没有及格的门数'
+from student_course sc,student s
+where Mark<60 and s.sno=sc.sno
+group by sc.sNO,sName
+
+select LEFT(s.sNO,7),COUNT(*) AS '人数'
+from student s,major m
+where m.mName='计算机科学与技术' and s.mNO=m.mNO
+group by LEFT(s.sNO,7)
+
+
+select s.sNO,sName,mark
+from student s,student_course sc
+where s.sNO=sc.sNO and ccNO='0324091007' and Mark>=(
+ select AVG(mark)
+ from student_course
+ where ccNO='0324091007'
+ )
+ 
+SELECT sNO,sName
+from student s
+where not exists
+	(select *
+	from course_class cc
+	where not exists
+		(select *
+		from student_course sc
+		where s.sNo=sc.sNO and sc.ccNO=cc.ccNo)
+	)
+		
+select 	*
+from student
+where sNative=
+	(select sNative
+	from student 
+	where sname='张凡')
+	and 
+	sBirth>
+	(select sBirth 
+	from student 
+	where sName='张凡')
+	
+select *
+from student
+where sBirth>(select MAX(sBirth)
+	from student s inner join major m on s.mNO=m.mNO
+	inner join department d on d.dNO=m.dNO
+	WHERE dName='计算机系')
+	
+select sName,s.sNO,c.cNO,MARK
+FROM student_course SC, student s,course c, course_class cc
+where sc.sNO=s.sNO and c.cNO=cc.ccNO and cc.ccNO=SC.ccNO
+order by Mark asc
+
+select student.sNo , MARK,sName
+FROM student,course,student_course
+where student.sno=course.cNO and student_course.Mark<60
+(SELECT student_course.Mark from course,student,student_course
+where student.sName='李晨' and course.cName='高等数学'
+and student.sNO=student_course.sNO
+and course.cNO=student_course.ccno )
+
+select student.sNO,student.sName
+FROM
+(
+SELECT SNO,COUNT(ccNO) AS NUM 
+FROM student_course
+WHERE ccNO IN(
+SELECT ccNO FROM student JOIN student_course ON STUDENT.sNO=student_course.SNO
+AND sName='090120206')
+GROUP BY sNO
+)T2
+JOIN(SELECT COUNT(CCNO) NUM FROM student JOIN student_course 
+ON STUDENT.sNO=student_course.sNO and sName='090120206')
+t1 on t2.NUM=t1.NUM
+join student on student.sNO=t2.sNO
+
+--3、语句填空实验内容
+--(1)查询有不及格课程的学生学号、姓名和专业名称。
+SELECt s.sNo,sName,mName
+FROM student s,major m,student_course sc
+WHERE s.mNo=m.mNo AND s.sNo=sc.sNo AND mark<60
+
+--（2）查询同一个学生的“010101”号课程的成绩比“010102”号课程的成绩高的所有学生的学号及其两门课的成绩。
+SELECT sc1.sNo ,sc1.mark,sc2.mark
+FROM student_course sc1,student_course sc2
+WHERE sc1.ccNo='2009010101'
+	  AND sc2.ccNo='2009010201'
+	  AND 
+	  AND 
+	  
+--（3）查询既选修过“计算机网络”课程，又选修过“金融学”课程的所有学生学号及姓名。
+SELECT s.sNo,s.sName
+FROM student s
+WHERE sNo IN (
+SELECT sc.sNo
+FROM student_course sc,course_class cc,course c
+WHERE sc.ccNo=cc.ccNo AND cc.cno=c.cno
+AND c.cname IN('计算机网络','金融学')
+GROUP BY sNo
+having 
